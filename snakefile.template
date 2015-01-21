@@ -1,0 +1,9 @@
+configfile: "project.json"
+
+samples=sorted(list(config['samples'].keys()))
+pairs=sorted(list(config['pairs'].keys()))
+groot=config['references']['GENOME'].split(".")[0]
+ext=".pileup.recal.realign.fin.dedup.sorted.bam"
+ext2=[ext,ext]
+
+

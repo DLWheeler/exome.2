@@ -11,8 +11,8 @@
         "references": {
              "GENOME": "/ngs/Sequence/reference/human/hg18/bundle/chr21+22.fasta",
              "INDELSITES": "/ngs/Sequence/reference/human/hg18/bundle/Mills_and_1000G_gold_standard.indels.hg18.vcf", 
-             "NOVOINDEX": "/Bundle/human_g1k_v37_iupac.nix", 
-             "REFFLAT": "/SureSelect/SS_exome.txt", 
+             "NOVOINDEX": "/ngs/Sequence/reference/human/hg18/bundle/human_g1k_v37_iupac.nix", 
+             "REFFLAT": "/ngs/Sequence/reference/hg18/bundle/SureSelect/SS_exome.txt", 
              "SNPSITES": "/ngs/Sequence/reference/human/hg18/bundle/dbsnp_138.hg18.vcf"
         },
         "samples": {
@@ -31,15 +31,15 @@
              "BWA": "/home/david/Builds/bwa-0.7.10/bwa",
              "ANNOVAR1": "/ngs/bin/annovar/convert2annovar.pl", 
              "ANNOVAR2": "/ngs/bin/annovar/table_annovar.pl", 
-             "COVCALC": "/Coverage_calc4.pl", 
-             "COVFREQ": "/Cov_Frequency3.R",
+             "COVCALC": "/ngs/bin/Coverage_calc4.pl", 
+             "COVFREQ": "/ngs/bin/Cov_Frequency3.R",
              "GATK": "/ngs/bin/java -Xmx2g -jar /ngs/bin/Gatk/GenomeAnalysisTK.jar", 
              "MARKDUPS": "picard-tools MarkDuplicates", 
              "PICARD1": "picard-tools AddOrReplaceReadGroups", 
              "PICARD2": "picard-tools CollectInsertSizeMetrics", 
-             "PICHIST": "/scripts/picardhist.R", 
-             "QCAL": "qcalplot.R", 
-             "READDIST": "ReadDist.R", 
+             "PICHIST": "/ngs/bin/picardhist.R", 
+             "QCAL": "/ngs/bin/qcalplot.R", 
+             "READDIST": "/ngs/bin/ReadDist.R", 
              "VARSCAN": "java -jar /ngs/bin/VarScan.v2.3.7.jar"
         },
         "paths": {
@@ -50,94 +50,26 @@
             "ADAPTER2": "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT"
         },
     "rules": {
-        "map_pe": {
-            "test": "touch mapped",
-            "v1": "{params.bwa} mem {input[1]} {input[2]} {input[3]} > {output}",
-            "v2": "{params.bwa} mem {input[1]} {input[2]} {input[3]} > {output}"
+        "map_pe":["exomeseq-pairs"],
+        "index_ref":["exomeseq-pairs"],
+        "annovar":["exomeseq-pairs"], 
+        "checkqc":["exomeseq-pairs"],
+        "sam2bam":["exomeseq-pairs"], 
+        "flagstats":["exomeseq-pairs"], 
+        "flagstats_dedup":["exomeseq-pairs"], 
+        "coverage_qc":["exomeseq-pairs"], 
+        "headers":["exomeseq-pairs"], 
+        "markdups":["exomeseq-pairs"], 
+        "mpileup":["exomeseq-pairs"], 
+        "realign":["exomeseq-pairs"], 
+        "recal":["exomeseq-pairs"], 
+        "sam2bam":["exomeseq-pairs"], 
+        "sort":["exomeseq-pairs"], 
+        "varscan":["exomeseq-pairs"]
         },
-        "index_ref": {
-            "test": "touch indexed",
-            "v1": "{params.bwa} index {params.ref}",
-            "v2": "{params.bwa} index {params.ref}"
-        },
-        "align": {
-            "test": "touch {output} {output.qcal}.qcalreport.pdf", 
-            "v1": "module load novocraft; novoalign -c 16 -d {params.novoindex} -a {params.adapter1} {params.adapter2} -H 10 -k -K {output.qcal} -i PE 180,50 -o SAM -f {input} {params.qcal} {output.qcal} {output.qcal}.qcalreport.pdf;", 
-            "v2": "/ngs/bin/bwa index {params.genome}; /ngs/bin/bwa mem -M {params.genome} {input} > {output.sam}; touch {output.qcal}.qcalreport.pdf {output.qcal}"
-        }, 
-        "annovar": {
-            "test": "touch {output}", 
-            "v1": "{params.annovar1} -format vcf4 {input.snp} -outfile {output.snpav}; {params.annovar1} -format vcf4 {input.indel} -outfile {output.indelav}; {params.annovar2} {output.snpav} {params.anndir} -buildver hg19 -out {output.snpsum} -remove -protocol refGene,knownGene,ensGene,gerp++elem,phastConsElements46way,tfbsConsSites,genomicSuperDups,cytoBand,snp137,1000g2012apr_all,1000g2012apr_eur,1000g2012apr_amr,1000g2012apr_asn,1000g2012apr_afr,esp6500si_all,esp6500si_ea,esp6500si_aa,cosmic65,avsift,ljb2_all,ljb2_sift,ljb2_pp2hvar,cg69 -operation g,g,g,r,r,r,r,r,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f -nastring NA; {params.annovar2} {output.indelav} {params.anndir} -buildver hg19 -out {output.indelsum} -remove -protocol refGene,knownGene,ensGene,gerp++elem,phastConsElements46way,tfbsConsSites,genomicSuperDups,cytoBand,snp137,1000g2012apr_all,1000g2012apr_eur,1000g2012apr_amr,1000g2012apr_asn,1000g2012apr_afr,esp6500si_all,esp6500si_ea,esp6500si_aa,cosmic65,avsift,ljb2_all,ljb2_sift,ljb2_pp2hvar,cg69 -operation g,g,g,r,r,r,r,r,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f -nastring NA;", 
-            "v2": "{params.annovar1} -format vcf4 {input.snp} -outfile {output.snpav}; {params.annovar1} -format vcf4 {input.indel} -outfile {output.indelav}; {params.annovar2} {output.snpav} {params.anndir} -buildver hg18 -out {params.snpsum} -remove -protocol refGene,knownGene,ensGene -operation g,g,g -nastring NA; {params.annovar2} {output.indelav} {params.anndir} -buildver hg18 -out {params.indelsum} -remove -protocol refGene,knownGene,ensGene -operation g,g,g -nastring NA;"
-        }, 
-        "checkqc": {
-            "test": "touch {output}", 
-            "v1": "source /data/ngs/bashrc; coverageBed -abam {input} -hist -b {params.refflat} > {output.cov}; perl {params.covcalc} {output.cov} {output.stat}; grep 'all' {output.cov} > {output.covall}; echo 'source(\"{params.covfreq}\"); RunData(file2 = \"{output.covall}\")' | R --vanilla; {params.picard2} INPUT={input} REFERENCE_SEQUENCE={params.genome} OUTPUT={output.ism} HISTOGRAM_FILE={output.hist}; R --vanilla < {params.pichist} --args {output.ism} {output.hist} {input}; samtools flagstat {input} > {output.flag}; {params.gatk} -T ReadLengthDistribution -I {input} -R {params.genome} -o {output.tbl}; echo 'source(\"{readdist}\"); RunHist(file = \"{output.tbl}\")' | R --vanilla;",
-            "v2": "source /data/ngs/bashrc; coverageBed -abam {input} -hist -b {params.refflat} > {output.cov}; perl {params.covcalc} {output.cov} {output.stat}; grep 'all' {output.cov} > {output.covall}; echo 'source(\"{params.covfreq}\"); RunData(file2 = \"{output.covall}\")' | R --vanilla; {params.picard2} INPUT={input} REFERENCE_SEQUENCE={params.genome} OUTPUT={output.ism} HISTOGRAM_FILE={output.hist}; R --vanilla < {params.pichist} --args {output.ism} {output.hist} {input}; samtools flagstat {input} > {output.flag}; {params.gatk} -T ReadLengthDistribution -I {input} -R {params.genome} -o {output.tbl}; echo 'source(\"{readdist}\"); RunHist(file = \"{output.tbl}\")' | R --vanilla;"
-        },
-        "sam2bam": {
-            "test": "touch {output}", 
-            "v1": "samtools view -bS {input} > {output}",
-            "v2": "samtools view -bS {input} > {output}"
-        }, 
-        "flagstats": {
-            "test": "touch {output}", 
-            "v1": "samtools flagstat {input} > {output}",
-            "v2": "samtools flagstat {input} > {output}"
-        }, 
-        "coverage_qc": {
-            "test": "touch {output}", 
-            "v1": "samtools faidx {input[0]}; samtools mpileup -f {input} |cut -f2,4 > out && Rscript QC/coverage.R {wildcards.x}",
-            "v2": "cat {input} |cut -f1,2,4 > out && Rscript QC/coverage.R {wildcards.x};touch {wildcards.x}.coverage.done"
-        }, 
-        "headers": {
-            "test": "touch {output} {params.rg1} {params.rg2}", 
-            "v1": "{params.picard1} I={input} O={output} RGID={params.rg1} RGPL={params.rg2} RGLB={params.rg1} RGPU={params.rg1} RGSM={input} RGCN=Melanoma RGDS={input}", 
-            "v2": "rgid=config['rgid'][wildcards.x];rgpl=config['platform'];shell('picard-tools AddOrReplaceReadGroups I={input} O={output} RGID={rgid} RGPL={rgpl} RGLB={rgpl} RGPU={rgpl} RGSM={input} RGCN=Melanoma RGDS={input}')"
-        }, 
-        "markdups": {
-            "test": "touch {output}", 
-            "v1": "{params.markdups} I={input} O={output.out} M={output.metrics} REMOVE_DUPLICATES=TRUE AS=TRUE", 
-            "v2": "{params.markdups} I={input} O={output.out} M={output.metrics} REMOVE_DUPLICATES=TRUE AS=TRUE"
-        }, 
-        "mpileup": {
-            "test": "touch {output}", 
-            "v1": "samtools mpileup -q 1 -f {params.genome} {input} > {output}", 
-            "v2": "samtools mpileup -q 1 -f {params.genome} {input} > {output}"
-        }, 
-        "realign": {
-            "test": "touch {output}", 
-            "v1": "samtools index {input}; module load GATK; {params.gatk} -T RealignerTargetCreator -I {input} -R {params.genome} -known {params.indelsites} -o {output.int}; {params.gatk} -T IndelRealigner -R {params.genome} -I {input} -targetIntervals {output.int} -o {output.re}", 
-            "v2": "samtools index {input}; samtools faidx {params.genome}; picard-tools CreateSequenceDictionary R={params.genome} O={params.groot}.dict; {params.gatk} -T RealignerTargetCreator -I {input} -R {params.genome} -known {params.indelsites} -o {output.int}; {params.gatk} -T IndelRealigner -R {params.genome} -I {input} -targetIntervals {output.int} -o {output.re}"
-        }, 
-        "recal": {
-            "test": "touch {output}", 
-            "v1": "module load GATK; {params.gatk} -T BaseRecalibrator -I {input} -R {params.genome} -knownSites {params.snpsites} -knownSites {params.indelsites} -o {output.re}; {params.gatk} -T PrintReads -R {params.genome} -I {input} -BQSR {output.re} -o {output.bam}; {params.gatk} -T BaseRecalibrator -I {output.bam} -R {params.genome} -knownSites {params.snpsites} -knownSites {params.indelsites} -BQSR {output.re} -o {output.re2}; {params.gatk} -T AnalyzeCovariates -R {params.genome} -before {output.re} -after {output.re2} -plots {output.plots};", 
-            "v2": "{params.gatk} -T BaseRecalibrator -I {input} -R {params.genome} -knownSites {params.snpsites} -knownSites {params.indelsites} -o {output.re}; {params.gatk} -T PrintReads -R {params.genome} -I {input} -BQSR {output.re} -o {output.bam}; {params.gatk} -T BaseRecalibrator -I {output.bam} -R {params.genome} -knownSites {params.snpsites} -knownSites {params.indelsites} -BQSR {output.re} -o {output.re2};touch {output.plots}"
-        }, 
-        "sam2bam": {
-            "test": "touch {output}", 
-            "v1": "samtools view -bS {input} > {output}", 
-            "v2": "/ngs/bin/samtools view -bS {input} > {output}"
-        }, 
-        "sort": {
-            "test": "touch {output}", 
-            "v1": "module load novocraft; novosort -s -i -o {output} {input}", 
-            "v2": "/ngs/bin/samtools sort {input} -f {output};"
-        }, 
-        "varscan": {
-            "test": "touch {output}", 
-            "v1": "{params.varscan} somatic {input[0]} {input[1]} --output-snp {output.snp} --output-indel {output.indel} --tumor-purity 0.85 --strand-filter 1;{params.varscan} somatic {input[0]} {input[1]} --output-snp {params.snpvcf} --output-indel {params.indelvcf} --output-vcf 1 --tumor-purity 0.85 --strand-filter 1",
-            "v2": "{params.varscan} somatic {input[0]} {input[1]} --output-snp {output.snp} --output-indel {output.indel} --tumor-purity 0.85 --strand-filter 1;{params.varscan} somatic {input[0]} {input[1]} --output-snp {params.snpvcf} --output-indel {params.indelvcf} --output-vcf 1 --tumor-purity 0.85 --strand-filter 1"
-        }, 
-        "targets": {
-        "run": "expand(config['FILEDIR']+\"{sample}.bam.sorted.dedup.fin.realign.recal.pileup.{mut}.vcf.{anal}\",sample=config['SAMPLES'],mut=[\"snp\",\"indel\"],anal=[\"av\",\"sum\"]),expand(config['FILEDIR']+\"{sample}.recal.tbl\",sample=config['SAMPLES'])", 
-        "test": "",
-            "t1": "config['FILEDIR']+'{sample}.bam.sorted.dedup.fin.realign.recal.pileup.{mut}.vcf.{anal}',sample=config['SAMPLES'],mut=['snp','indel'],anal=['av','sum']", 
-            "t2": "config['FILEDIR']+'{sample}.recal.tbl',sample=config['SAMPLES']"
+    "final": {
+        "exomeseq-pairs": "Rules/all-exomeseq-pairs.rl"
         }
-    }
-
 
  }
 

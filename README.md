@@ -1,1 +1,1 @@
-ExomeSeq Pipeline Model 1 for Pairs
+ExomeSeq Pipeline Model 2 for Pairs

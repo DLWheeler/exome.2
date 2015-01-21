@@ -1,14 +1,4 @@
-configfile: "project.json"
-
-samples=sorted(list(config['samples'].keys()))
-pairs=sorted(list(config['pairs'].keys()))
-groot=config['references']['GENOME'].split(".")[0]
-ext=".pileup.recal.realign.fin.dedup.sorted.bam"
-ext2=[ext,ext]
-
-
-
-rule all_exomeseq_pairs:
+rule allexomeseqpairs:
     input:  expand("{s}"+ext,s=samples),
             expand("{s}.flags",s=samples),
             expand("{s}.dedup.flags",s=samples),
